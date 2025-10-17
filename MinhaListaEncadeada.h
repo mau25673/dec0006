@@ -21,11 +21,18 @@
 template<typename T>
 class MinhaListaEncadeada: public ListaEncadeadaAbstrata<T>
 {
+    public:
     /**
      * @brief Destrutor. Destroi todos os elementos da lista
      */
     virtual ~MinhaListaEncadeada(){
-        //escreva o algoritmo esperado
+        Elemento<T>* elementoProximo;
+        for (Elemento<T>* elementoAtual = this->_primeiro; elementoAtual != nullptr; elementoAtual = elementoProximo){
+            elementoProximo = elementoAtual->proximo;
+            delete elementoAtual;
+        }
+        this->_primeiro = nullptr;
+        this->_tamanho = 0;
     }
 
     /**
@@ -35,8 +42,7 @@ class MinhaListaEncadeada: public ListaEncadeadaAbstrata<T>
      */
     virtual std::size_t tamanho() const
     {
-        //substitua a linha abaixo pelo algoritmo esperado
-        return 0;
+        return this->_tamanho;
     };
     
     /**
@@ -46,8 +52,7 @@ class MinhaListaEncadeada: public ListaEncadeadaAbstrata<T>
      */
     virtual bool vazia() const 
     {
-        //substitua a linha abaixo pelo algoritmo esperado
-        return 0;
+        return !(this->tamanho());
     };
 
     /**
@@ -60,9 +65,17 @@ class MinhaListaEncadeada: public ListaEncadeadaAbstrata<T>
      * item na lista, a posição da primeira ocorrência.
      */
     virtual std::size_t posicao(T dado) const 
-    {
-        //substitua a linha abaixo pelo algoritmo esperado
-        return 0;
+    {   
+        if (this->vazia()){
+            throw ExcecaoListaEncadeadaVazia();
+        }
+        size_t posicao = 0;
+        for (Elemento<T>* i = this->_primeiro; i != nullptr; i = i->proximo, posicao++){
+            if (i->dado == dado){
+                return posicao;
+            }
+        }
+        throw ExcecaoDadoInexistente();
     };
     
     /**
@@ -73,7 +86,11 @@ class MinhaListaEncadeada: public ListaEncadeadaAbstrata<T>
      */
     virtual bool contem(T dado) const
     {
-        //substitua a linha abaixo pelo algoritmo esperado
+        for (Elemento<T>* i = this->_primeiro; i != nullptr; i = i->proximo){
+            if (i->dado == dado){
+                return true;
+            }
+        }
         return false;
     };
 
@@ -84,7 +101,8 @@ class MinhaListaEncadeada: public ListaEncadeadaAbstrata<T>
      */
     virtual void inserirNoInicio(T dado) 
     {
-        //escreva o algoritmo esperado
+        this->_primeiro = new Elemento(dado, this->_primeiro);
+        this->_tamanho++;
     };
 
     /**
@@ -100,7 +118,24 @@ class MinhaListaEncadeada: public ListaEncadeadaAbstrata<T>
      */
     virtual void inserir(std::size_t posicao, T dado)
     {
-        //escreva o algoritmo esperado
+        if (posicao > this->tamanho()){
+            throw ExcecaoPosicaoInvalida();
+        }
+        if (posicao == 0){
+            this->inserirNoInicio(dado);
+        }
+        else{
+            size_t posicao_atual = 0;
+            Elemento<T> *novoElemento;
+            for (Elemento<T>* i = this->_primeiro; i != nullptr; i = i->proximo, posicao_atual++){
+                if(posicao_atual == posicao-1){
+                    novoElemento = new Elemento(dado, i->proximo);
+                    i->proximo = novoElemento;
+                    this->_tamanho++;
+                    break;
+                }
+            }
+        }
     };
 
 
@@ -112,6 +147,21 @@ class MinhaListaEncadeada: public ListaEncadeadaAbstrata<T>
     virtual void inserirNoFim(T dado)
     {
         //escreva o algoritmo esperado
+        if (this->_tamanho == 0){
+            this->inserirNoInicio(dado);
+        }
+        else{
+            size_t posicao_atual = 0;
+            Elemento<T> *novoElemento;
+            for (Elemento<T>* i = this->_primeiro; i != nullptr; i = i->proximo, posicao_atual++){
+                if(posicao_atual == this->_tamanho-1){
+                    novoElemento = new Elemento<T>(dado, nullptr);
+                    i->proximo = novoElemento;
+                    this->_tamanho++;
+                    break;
+                }
+            }
+        }
     };
 
     /**
@@ -122,8 +172,15 @@ class MinhaListaEncadeada: public ListaEncadeadaAbstrata<T>
      */
     virtual T removerDoInicio()
     {
-        //substitua a linha abaixo pelo algoritmo esperado
-        return 0;
+        if(this->_primeiro == nullptr){
+            throw ExcecaoListaEncadeadaVazia();
+        }
+        Elemento<T> *primeiroAnterior = this->_primeiro;
+        this->_primeiro = this->_primeiro->proximo;
+        T dadoAntigo = primeiroAnterior->dado;
+        delete primeiroAnterior;
+        this->_tamanho--;
+        return dadoAntigo;
     };
 
     /**
@@ -135,8 +192,28 @@ class MinhaListaEncadeada: public ListaEncadeadaAbstrata<T>
      */
     virtual T removerDe(std::size_t posicao)
     {
-        //substitua a linha abaixo pelo algoritmo esperado
-        return 0;
+        if(posicao >= this->tamanho()){
+            throw ExcecaoPosicaoInvalida();
+        }
+        else if(posicao == 0){
+            return this->removerDoInicio();
+        }
+        else if(this->tamanho()-1 == posicao){
+            return this->removerDoFim();
+        }
+        else{
+            size_t posicao_atual = 0;
+            for (Elemento<T>* i = this->_primeiro; i != nullptr; i = i->proximo, posicao_atual++){
+                if (posicao_atual == posicao-1){
+                    Elemento<T>* antigoElemento = i->proximo;
+                    T dadoAntigo = antigoElemento->dado;
+                    i->proximo = antigoElemento->proximo;
+                    delete antigoElemento;
+                    this->_tamanho--;
+                    return dadoAntigo;
+                }
+            }
+        }
     };
 
     /**
@@ -147,8 +224,26 @@ class MinhaListaEncadeada: public ListaEncadeadaAbstrata<T>
      */
     virtual T removerDoFim()
     {
-        //substitua a linha abaixo pelo algoritmo esperado
-        return 0;
+        
+        if(this->_primeiro == nullptr){
+            throw ExcecaoListaEncadeadaVazia();
+        }
+        else if(this->_primeiro->proximo == nullptr){
+            return this->removerDoInicio();
+        }
+        else{
+            size_t posicao_atual = 0;
+            for (Elemento<T>* i = this->_primeiro; i != nullptr; i = i->proximo, posicao_atual++){
+                if (posicao_atual == this->_tamanho-2){
+                    Elemento<T>* antigoUltimo = i->proximo;
+                    T dadoAntigo = antigoUltimo->dado;
+                    i->proximo = nullptr;
+                    delete antigoUltimo;
+                    this->_tamanho--;
+                    return dadoAntigo;
+                }
+            }
+        }
     };
 
     /**
@@ -161,7 +256,27 @@ class MinhaListaEncadeada: public ListaEncadeadaAbstrata<T>
      */
     virtual void remover(T dado)
     {
-        //escreva o algoritmo esperado
+        if (this->tamanho() == 0){
+            throw ExcecaoListaEncadeadaVazia();
+        }
+        if (!(this->contem(dado))){
+            throw ExcecaoDadoInexistente();
+        }
+        if(this->_primeiro->dado == dado){
+            this->removerDoInicio();
+        }
+        else{
+            Elemento<T>* elementoAnterior = this->_primeiro;
+            for (Elemento<T>* i = this->_primeiro->proximo; i != nullptr; i = i->proximo){
+                if(i->dado == dado){
+                    elementoAnterior->proximo = i->proximo;
+                    delete i;
+                    this->_tamanho--;
+                    break;
+                }
+                elementoAnterior = elementoAnterior->proximo;
+            }
+        }
     };
 };
 
